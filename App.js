@@ -1,6 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 
 import { Authenticate,TasksList } from './components';
 import { NavigationContainer } from '@react-navigation/native';
@@ -13,10 +12,10 @@ export default function App() {
 
     <NavigationContainer>
     <Stack.Navigator>
-    <Stack.Screen
+    {/* <Stack.Screen
        name="Home"
        component={Authenticate}
-    /> 
+    />  */}
     <Stack.Screen
        name="Tasks"
        component={TasksList}

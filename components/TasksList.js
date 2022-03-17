@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Switch,StyleSheet, Text, View, TextInput, TouchableOpacity, Keyboard, ScrollView, Button } from 'react-native';
+import { KeyboardAvoidingView, Image, Switch, StyleSheet, Text, View, TextInput, TouchableOpacity, Keyboard, ScrollView, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TasksList = () => {
@@ -7,58 +7,98 @@ const TasksList = () => {
     const [task, setTask] = useState();
     const [taskList, setTaskList] = useState([]);
     const [isEnabled, setIsEnabled] = useState(false);
+    const [update, setUpdate] = useState(false);
+    const [editId, setEditId] = useState();
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
     useEffect(() => {
+
         async function fetchMyAPI() {
             try {
                 const value = await AsyncStorage.getItem('@storage_Key')
-                if(value !== null) {
-                    console.log(taskList);
+                if (value !== null) {
+                    console.log('value', value);
                     setTaskList(JSON.parse(value));
-                  // value previously stored
+                    // value previously stored
                 }
-              } catch(e) {
-                  console.log(e);
+            } catch (e) {
+                console.log('error: ', e);
                 // error reading value
-              }
-    }
-    fetchMyAPI()
+            }
+
+            //   try {
+            //     await AsyncStorage.removeItem('@MyApp_key')
+            //   } catch(e) {
+            //     // remove error
+            //   }
+        }
+        fetchMyAPI()
+
     }, [])
 
-    const storeData = async () => {
+    const storeData = async (type, task) => {
         try {
-          await AsyncStorage.setItem('@storage_Key', JSON.stringify(taskList))
+            if (type === 'push') {
+                await AsyncStorage.setItem('@storage_Key', JSON.stringify([...taskList, { key: taskList.length + 1, value: task, status: 0 }]))
+            } else {
+                await AsyncStorage.setItem('@storage_Key', JSON.stringify(taskList));
+            }
         } catch (e) {
-            console.log(e);
-          // saving error
+            console.log('error', e);
+            // saving error
         }
-      }
+    }
 
     const addTask = () => {
         if (task != undefined) {
-            setTaskList([...taskList, { key: taskList.length + 1, value: task, status: 0 }]);
+            if (update) {
+                var arr = [...taskList];
+                console.log(editId);
+                arr[editId]['value'] = task;
+                setTaskList(arr);
+            } else {
+                setTaskList([...taskList, { key: taskList.length + 1, value: task, status: 0 }]);
+            }
             if (isEnabled) {
                 setIsEnabled(!isEnabled);
             }
-            storeData()
+            storeData('push', task)
             setTask(undefined);
+            setUpdate(false);
+            setEditId(undefined);
         }
     }
-    const markComplete = (index) => {
+    const deleteTask = (index) => {
         var arr = [...taskList];
         var ele = arr.findIndex(e => e['key'] === index);
-        arr[ele]['status'] = 1;
+        arr.splice(ele,1);
         setTaskList(arr);
-        storeData()
-
+    }
+    const changeStatus = (index) => {
+        var arr = [...taskList];
+        var ele = arr.findIndex(e => e['key'] === index);
+        if(isEnabled){
+            arr[ele]['status'] = 0;
+        } else{
+            arr[ele]['status'] = 1;
+        }
+            setTaskList(arr);
+            storeData('update', undefined);
+    
+}
+    const edit = (index) => {
+        setUpdate(true);
+        var arr = [...taskList];
+        var ele = arr.findIndex(e => e['key'] === index);
+        setEditId(ele);
+        setTask(arr[ele]['value']);
     }
     const hasPending = () => {
         if (taskList.length > 0) {
             var count = taskList.filter(task => (isEnabled) ? task.status === 1 : task.status === 0);
             return (
                 (count.length > 0) ?
-                   <Text></Text>
+                    <Text></Text>
                     : <Text style={styles.centeredText}>
                         {(isEnabled) ? 'No Completed tasks' : 'No Pending Tasks'}
                     </Text>
@@ -81,7 +121,7 @@ const TasksList = () => {
                 <Text style={(isEnabled) ? styles.toggleComp : styles.togglePnd}>Completed</Text>
             </View>
         </View>
-
+<ScrollView>
         {(taskList.length > 0) ?
             taskList.filter(task => (isEnabled) ? task.status === 1 : task.status === 0).map((filtered, index) => {
                 return (
@@ -90,14 +130,22 @@ const TasksList = () => {
                             <View style={styles.square}></View>
                             <Text style={(!isEnabled) ? styles.itemTextPnd : styles.itemTextComp}>{filtered.value}</Text>
                         </View>
-                        <TouchableOpacity onPress={() => markComplete(filtered.key)}>
-                            <View style={styles.circular} >
-                            </View>
-                        </TouchableOpacity>
+                        <View style={styles.options}>
+                            <TouchableOpacity onPress={() => changeStatus(filtered.key)}>
+                                <Image source={(!isEnabled)?  require('../assets/check.png') :require('../assets/reload.png') } style={{ height: 20, width: 20, marginRight: 5 }} />
+                            </TouchableOpacity>
+                           { (!isEnabled)? <TouchableOpacity onPress={() => edit(filtered.key)}>
+                                <Image source={require('../assets/draw.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
+                            </TouchableOpacity> : null}
+                            <TouchableOpacity onPress={() => deleteTask(filtered.key)}>
+                                <Image source={require('../assets/delete.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 )
             }) : <Text style={styles.centeredText}>No tasks in the list</Text>
         }
+        </ScrollView>
         {hasPending()
         }
 
@@ -110,7 +158,7 @@ const TasksList = () => {
             <TextInput style={styles.input} placeholder={'Write a task'} value={task} onChangeText={(text) => setTask(text)} />
 
             <View >
-                <Button style={styles.addButton} onPress={addTask} title='+' />
+                <Button style={styles.addButton} onPress={addTask}  title={(update) ? 'Update' : 'Add'} />
             </View>
         </KeyboardAvoidingView>
     </View>
@@ -144,6 +192,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Roboto',
         fontWeight: 'bold'
     },
+    options: {
+        flexDirection: 'row'
+    },
     item: {
         backgroundColor: '#FFF',
         padding: 15,
@@ -176,12 +227,12 @@ const styles = StyleSheet.create({
     },
     itemTextPnd: {
         maxWidth: '80%',
-        fontSize: 20,
+        fontSize: 16,
         color: 'black',
     },
     itemTextComp: {
         maxWidth: '80%',
-        fontSize: 20,
+        fontSize: 16,
         color: 'green',
     },
     circular: {
