@@ -3,7 +3,7 @@ import { ImageBackground, View, Text, StyleSheet, TouchableOpacity, TextInput, P
 
 const API_URL = 'http://6bc3-223-236-240-169.ngrok.io';
 
-const Authenticate = () => {
+const Authenticate = (props) => {
 
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
@@ -28,7 +28,7 @@ const Authenticate = () => {
         fetch(`${API_URL}/private`, {
             method: 'GET',
             headers: {
-                'Content-Type':'application/json',
+                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
         })
@@ -37,7 +37,10 @@ const Authenticate = () => {
                     const jsonRes = await res.json();
                     if (res.status === 200) {
                         setMessage(jsonRes.message);
-                        
+                        if (isLogin) {
+                            props.navigation.navigate("Tasks")
+                        }
+
                     }
                 } catch (err) {
                     console.log(err);
@@ -86,114 +89,123 @@ const Authenticate = () => {
         return status + message;
     }
 
-    return (<ImageBackground source={require('../public/images/gradient-back.jpeg')}
-        style={styles.image} >
-             <View style={styles.card} >
-             <Text style={styles.heading}>{isLogin ? 'Login' : 'Signup'}</Text>
-             <View style={styles.form}>
-             <View style={styles.inputs}>
-             <TextInput style={styles.input} placeholder="Email" autoCapitalize="none" onChangeText={setEmail} value={email}></TextInput>
-             {!isLogin && <TextInput style={styles.input} placeholder="Name" onChangeText={setName} value={name}></TextInput>}
-             <TextInput secureTextEntry={true} style={styles.input} placeholder="Password" onChangeText={setPassword} value={password}></TextInput>
-             <Text style={[styles.message, {color: isError ? 'red' : 'green'}]}>{message ? getMessage() : message}</Text>
-             <TouchableOpacity style={styles.button} onPress={onSubmitHandler}>
-                            <Text style={styles.buttonText}>{isLogin ? 'Log in' : 'Sign up'}</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.buttonAltText}> {isLogin ? "Don't have an account ? " : 'already have an account? '}
-                        <Text  onPress={onChangeHandler}>
-<Text style={styles.buttonAlt1Text}>{isLogin ? 'create one.' : 'login here.'}</Text>
-                             </Text>
-                        </Text>
-                       
-                 </View>
-                 </View>
+    return (
+        <View style={styles.container}>
+            <ImageBackground source={require('../public/images/gradient-back.jpeg')}
+                style={styles.image} >
+                <View style={styles.card} >
+                    <Text style={styles.heading}>{isLogin ? 'Login' : 'Signup'}</Text>
+                    <View style={styles.form}>
+                        <View style={styles.inputs}>
+                            <TextInput style={styles.input} placeholder="Email" autoCapitalize="none" onChangeText={setEmail} value={email}></TextInput>
+                            {!isLogin && <TextInput style={styles.input} placeholder="Name" onChangeText={setName} value={name}></TextInput>}
+                            <TextInput secureTextEntry={true} style={styles.input} placeholder="Password" onChangeText={setPassword} value={password}></TextInput>
+                            <Text style={[styles.message, { color: isError ? 'red' : 'green' }]}>{message ? getMessage() : message}</Text>
+                            <TouchableOpacity style={styles.button} onPress={onSubmitHandler}>
+                                <Text style={styles.buttonText}>{isLogin ? 'Log in' : 'Sign up'}</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.buttonAltText}> {isLogin ? "Don't have an account ? " : 'already have an account? '}
+                                <Text onPress={onChangeHandler}>
+                                    <Text style={styles.buttonAlt1Text}>{isLogin ? 'create one.' : 'login here.'}</Text>
+                                </Text>
+                            </Text>
 
-             </View>
+                        </View>
+                    </View>
 
-        </ImageBackground >
-                                                    );
+                </View>
+
+            </ImageBackground >
+        </View>
+    );
 };
 
-                                                    const styles = StyleSheet.create({
-                                                        image: {
-                                                        flex: 1,
-                                                    width: '100%',
-                                                    alignItems: 'center',
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-                                                    card: {
-                                                        flex: 1,
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-                                                    width: '80%',
-                                                    marginTop: '40%',
-                                                    borderRadius: 20,
-                                                    maxHeight: 380,
-                                                    paddingBottom: '30%',
+    image: {
+        flex: 1,
+        width: '100%',
+        alignItems: 'center',
     },
-                                                    heading: {
-                                                        fontSize: 30,
-                                                    fontWeight: 'bold',
-                                                    marginLeft: '10%',
-                                                    marginTop: '5%',
-                                                    marginBottom: '30%',
-                                                    color: 'black',
+    card: {
+        flex: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.4)',
+        width: '80%',
+        marginTop: '40%',
+        borderRadius: 20,
+        maxHeight: 380,
+        paddingBottom: '30%',
     },
-                                                    form: {
-                                                        flex: 1,
-                                                    justifyContent: 'space-between',
-                                                    paddingBottom: '5%',
+    heading: {
+        fontSize: 30,
+        fontWeight: 'bold',
+        marginLeft: '10%',
+        marginTop: '5%',
+        marginBottom: '30%',
+        color: 'black',
     },
-                                                    inputs: {
-                                                        width: '100%',
-                                                    flex: 1,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    paddingTop: '10%',
+    form: {
+        flex: 1,
+        justifyContent: 'space-between',
+        paddingBottom: '5%',
     },
-                                                    input: {
-                                                        width: '80%',
-                                                    borderBottomWidth: 1,
-                                                    borderBottomColor: 'black',
-                                                    paddingTop: 10,
-                                                    fontSize: 16,
-                                                    minHeight: 40,
+    inputs: {
+        width: '100%',
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: '10%',
     },
-                                                    button: {
-                                                        width: '80%',
-                                                    backgroundColor: 'black',
-                                                    height: 40,
-                                                    borderRadius: 50,
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    marginVertical: 5,
+    input: {
+        width: '80%',
+        borderBottomWidth: 1,
+        borderBottomColor: 'black',
+        paddingTop: 10,
+        fontSize: 16,
+        minHeight: 40,
     },
-                                                    buttonText: {
-                                                        color: 'white',
-                                                    fontSize: 16,
-                                                    fontWeight: '400'
+    button: {
+        width: '80%',
+        backgroundColor: 'black',
+        height: 40,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginVertical: 5,
     },
-                                                    buttonAlt: {
-                                                    justifyContent: 'center',
-                                                    color:'blue',
-                                                    alignItems: 'center',
-                                                    marginVertical: 5,
+    buttonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '400'
     },
-                                                    buttonAltText: {
-                                                        color: 'blue',
-                                                    fontSize: 16,
-                                                    fontWeight: '400',
-                                                    marginTop:20
+    buttonAlt: {
+        justifyContent: 'center',
+        color: 'blue',
+        alignItems: 'center',
+        marginVertical: 5,
+    },
+    buttonAltText: {
+        color: 'blue',
+        fontSize: 16,
+        fontWeight: '400',
+        marginTop: 20
     },
     buttonAlt1Text: {
         color: 'blue',
-    fontSize: 16,
-    fontWeight: '400',
-    marginTop: 20,
+        fontSize: 16,
+        fontWeight: '400',
+        marginTop: 20,
 
-},
-                                                    message: {
-                                                        fontSize: 16,
-                                                    marginVertical: '5%',
+    },
+    message: {
+        fontSize: 16,
+        marginVertical: '5%',
     },
 });
 
-                                                    export default Authenticate;
+export default Authenticate;

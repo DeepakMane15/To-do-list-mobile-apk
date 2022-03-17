@@ -1,3 +1,5 @@
 import Authenticate from './Authenticate';
+import TasksList from './TasksList';
 
-export { Authenticate };
+
+export { Authenticate, TasksList };
