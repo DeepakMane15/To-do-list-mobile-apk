@@ -71,21 +71,21 @@ const TasksList = () => {
     const deleteTask = (index) => {
         var arr = [...taskList];
         var ele = arr.findIndex(e => e['key'] === index);
-        arr.splice(ele,1);
+        arr.splice(ele, 1);
         setTaskList(arr);
     }
     const changeStatus = (index) => {
         var arr = [...taskList];
         var ele = arr.findIndex(e => e['key'] === index);
-        if(isEnabled){
+        if (isEnabled) {
             arr[ele]['status'] = 0;
-        } else{
+        } else {
             arr[ele]['status'] = 1;
         }
-            setTaskList(arr);
-            storeData('update', undefined);
-    
-}
+        setTaskList(arr);
+        storeData('update', undefined);
+
+    }
     const edit = (index) => {
         setUpdate(true);
         var arr = [...taskList];
@@ -105,6 +105,15 @@ const TasksList = () => {
             )
         }
     }
+    const reset = async () => {
+        try {
+            await AsyncStorage.removeItem('@storage_Key')
+            setTaskList([]);
+
+        } catch (e) {
+            // remove error
+        }
+    }
 
     return (<View style={styles.container} >
         <View style={styles.title}>
@@ -119,32 +128,36 @@ const TasksList = () => {
                     value={isEnabled}
                 />
                 <Text style={(isEnabled) ? styles.toggleComp : styles.togglePnd}>Completed</Text>
+                <TouchableOpacity onPress={reset} style={styles.reset}>
+                    <Text style={{ color: 'brown', textAlign: 'center', fontSize: 15 }} >Reset</Text>
+                </TouchableOpacity>
+
             </View>
         </View>
-<ScrollView>
-        {(taskList.length > 0) ?
-            taskList.filter(task => (isEnabled) ? task.status === 1 : task.status === 0).map((filtered, index) => {
-                return (
-                    <View style={styles.item} key={index}>
-                        <View style={styles.itemLeft}>
-                            <View style={styles.square}></View>
-                            <Text style={(!isEnabled) ? styles.itemTextPnd : styles.itemTextComp}>{filtered.value}</Text>
+        <ScrollView>
+            {(taskList.length > 0) ?
+                taskList.filter(task => (isEnabled) ? task.status === 1 : task.status === 0).map((filtered, index) => {
+                    return (
+                        <View style={styles.item} key={index}>
+                            <View style={styles.itemLeft}>
+                                <View style={styles.square}></View>
+                                <Text style={(!isEnabled) ? styles.itemTextPnd : styles.itemTextComp}>{filtered.value}</Text>
+                            </View>
+                            <View style={styles.options}>
+                                <TouchableOpacity onPress={() => changeStatus(filtered.key)}>
+                                    <Image source={(!isEnabled) ? require('../assets/check.png') : require('../assets/reload.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
+                                </TouchableOpacity>
+                                {(!isEnabled) ? <TouchableOpacity onPress={() => edit(filtered.key)}>
+                                    <Image source={require('../assets/draw.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
+                                </TouchableOpacity> : null}
+                                <TouchableOpacity onPress={() => deleteTask(filtered.key)}>
+                                    <Image source={require('../assets/delete.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <View style={styles.options}>
-                            <TouchableOpacity onPress={() => changeStatus(filtered.key)}>
-                                <Image source={(!isEnabled)?  require('../assets/check.png') :require('../assets/reload.png') } style={{ height: 20, width: 20, marginRight: 5 }} />
-                            </TouchableOpacity>
-                           { (!isEnabled)? <TouchableOpacity onPress={() => edit(filtered.key)}>
-                                <Image source={require('../assets/draw.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
-                            </TouchableOpacity> : null}
-                            <TouchableOpacity onPress={() => deleteTask(filtered.key)}>
-                                <Image source={require('../assets/delete.png')} style={{ height: 20, width: 20, marginRight: 5 }} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )
-            }) : <Text style={styles.centeredText}>No tasks in the list</Text>
-        }
+                    )
+                }) : <Text style={styles.centeredText}>No tasks in the list</Text>
+            }
         </ScrollView>
         {hasPending()
         }
@@ -158,7 +171,7 @@ const TasksList = () => {
             <TextInput style={styles.input} placeholder={'Write a task'} value={task} onChangeText={(text) => setTask(text)} />
 
             <View >
-                <Button style={styles.addButton} onPress={addTask}  title={(update) ? 'Update' : 'Add'} />
+                <Button style={styles.addButton} onPress={addTask} title={(update) ? 'Update' : 'Add'} />
             </View>
         </KeyboardAvoidingView>
     </View>
@@ -186,6 +199,18 @@ const styles = StyleSheet.create({
         paddingTop: 20,
         marginHorizontal: 20,
         flexDirection: 'row',
+    },
+    reset: {
+        position: 'absolute',
+        right: 0,
+        borderColor: 'blue',
+        borderWidth: 1,
+        borderRadius: 10,
+        padding: 5,
+        color: 'darkred',
+        width: 60,
+        textAlign: 'center',
+        fontSize: 15
     },
     titleText: {
         fontSize: 24,
@@ -226,12 +251,12 @@ const styles = StyleSheet.create({
         fontFamily: 'monospace'
     },
     itemTextPnd: {
-        maxWidth: '80%',
+        maxWidth: '70%',
         fontSize: 16,
         color: 'black',
     },
     itemTextComp: {
-        maxWidth: '80%',
+        maxWidth: '70%',
         fontSize: 16,
         color: 'green',
     },
